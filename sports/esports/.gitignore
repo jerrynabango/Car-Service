@@ -2,4 +2,3 @@ admin.py
 models.py
 templates
 urls.py
-views.py
