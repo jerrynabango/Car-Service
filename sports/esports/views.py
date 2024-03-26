@@ -8,7 +8,7 @@ from .models import Post
 import re
 
 # Get the User model
-User = get_user_model()
+User_Model = get_user_model()
 
 
 def SignUp(request):
@@ -27,7 +27,7 @@ def SignUp(request):
         # Validate email format
         if not validate_email_format(email):
             messages.error(request, "Please provide a valid email address with the domain 'gmail.com'.")
-            return render(request, "registrations/SignUp.html", {
+            return render(request, "SignUp.html", {
                 "First_Name": First_Name,
                 "Last_Name": Last_Name,
                 "username": username,
@@ -38,7 +38,7 @@ def SignUp(request):
         # Validate phone number format
         if not validate_phone_number(phone_number):
             messages.error(request, "The format of the phone number is incorrect.")
-            return render(request, "registrations/SignUp.html", {
+            return render(request, "SignUp.html", {
                 "First_Name": First_Name,
                 "Last_Name": Last_Name,
                 "username": username,
@@ -50,24 +50,24 @@ def SignUp(request):
             messages.error(request, "Passwords must match for confirmation.")
         elif not password_security_checker(password):
             messages.error(request, "Please choose a secure password")
-        elif User.objects.filter(email=email).exists():
+        elif User_Model.objects.filter(email=email).exists():
             messages.error(request, "Email already exists")
-        elif User.objects.filter(username=username).exists():
+        elif User_Model.objects.filter(username=username).exists():
             messages.error(request, "Username already exists")
         else:
-            User = User.objects.create_user(
-                First_Name=First_Name,
-                Last_Name=Last_Name,
+            user = User_Model.objects.create_user(
+                first_name=First_Name,
+                last_name=Last_Name,
                 username=username,
                 email=email,
                 password=password,
             )
-            if User is not None:
+            if user is not None:
                 messages.success(request, 'Welcome! Your account has been successfully created.')
                 return redirect("SignIn")
             else:
                 messages.error(request, "Try again!")
-                return render(request, "registrations/SignUp.html", {
+                return render(request, "SignUp.html", {
                     "First_Name": First_Name,
                     "Last_Name": Last_Name,
                     "username": username,
@@ -75,7 +75,7 @@ def SignUp(request):
                 })
 
     else:
-        return render(request, "registrations/SignUp.html")
+        return render(request, "SignUp.html")
 
 
 def validate_email_format(email):
@@ -126,52 +126,52 @@ def SignIn(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        User = authenticate(username=username, password=password)
+        user = authenticate(username=username, password=password)
 
-        if User is not None:
-            login(request, User)
+        if user is not None:
+            login(request, user)
             return redirect("List_of_Posts")
         else:
             messages.error(request, "Invalid Credentials")
-            return render(request, "registrations/SignIn.html",
+            return render(request, "SignIn.html",
                           {"username": username})
     else:
-        return render(request, "registrations/SignIn.html")
+        return render(request, "SignIn.html")
 
 
 def profile(request, esport):
     """
     User profile view.
     """
-    user_profile = get_object_or_404(User, esport=esport)
-    return render(request, "profile.html", {"user_profile": user_profile})
+    profile = get_object_or_404(User_Model, esport=esport)
+    return render(request, "profile.html", {"profile": profile})
 
 
 @login_required(login_url="SignIn")
-def settings(request):
+def View_Settings(request):
     """
     User settings view.
     """
-    user_profile = request.User
+    profile = request.user
 
     if request.method == "POST":
-        First_Name = request.POST.get("First_Name", "")
-        Last_Name = request.POST.get("Last_Name", "")
+        first_name = request.POST.get("first_name", "")
+        last_name = request.POST.get("last_name", "")
         bio = request.POST.get("bio", "")
 
-        user_profile.First_Name = First_Name
-        user_profile.Last_Name = Last_Name
-        user_profile.bio = bio
+        profile.first_name = first_name
+        profile.last_name = last_name
+        profile.bio = bio
 
         if "profile_picture" in request.FILES:
             profile_picture = request.FILES["profile_picture"]
-            user_profile.profile_picture = profile_picture
+            profile.profile_picture = profile_picture
 
-        user_profile.save()
+        profile.save()
 
-        return redirect("profile", user_profile.esport)
+        return redirect("profile", profile.esport)
 
-    return render(request, "settings.html", {"user_profile": user_profile})
+    return render(request, "view_settings.html", {"profile": profile})
 
 
 @login_required(login_url='SignIn')
@@ -180,7 +180,7 @@ def Created_Post(request):
     Create a new post.
     """
     if request.method == 'POST':
-        author = request.User
+        author = request.user
         title = request.POST.get('title', '')
         content = request.POST.get('content', '')
         if title and content:
@@ -190,7 +190,7 @@ def Created_Post(request):
             return redirect('Post_Details', esport=post.esport)
         else:
             messages.error(request, 'Title and content fields cannot be empty.')
-    return render(request, 'post_form.html')
+    return render(request, 'form.html')
 
 
 def Post_Details(request, esport):
@@ -198,10 +198,10 @@ def Post_Details(request, esport):
     View post detail.
     """
     post = get_object_or_404(Post, esport=esport)
-    if request.User.is_authenticated:
+    if request.user.is_authenticated:
         post.views += 1
         post.save()
-    return render(request, 'Post_Details.html', {'post': post})
+    return render(request, 'details.html', {'post': post})
 
 
 @login_required(login_url='SignIn')
@@ -226,7 +226,7 @@ def Updated_Post(request, esport):
         else:
             messages.error(request, 'Please provide both title and content.')
 
-    return render(request, 'post_form.html', {'post': post})
+    return render(request, 'form.html', {'post': post})
 
 
 @login_required(login_url='SignIn')
@@ -244,7 +244,7 @@ def Deleted_Post(request, esport):
         messages.success(request, 'Post deleted!')
         return redirect('List_of_Posts')
 
-    return render(request, 'post_confirm_delete.html', {'post': post})
+    return render(request, 'deleted.html', {'post': post})
 
 
 def List_of_Posts(request):
@@ -252,4 +252,4 @@ def List_of_Posts(request):
     List all posts.
     """
     posts = Post.objects.all()
-    return render(request, 'List_of_Posts.html', {'posts': posts})
+    return render(request, 'posts.html', {'posts': posts})

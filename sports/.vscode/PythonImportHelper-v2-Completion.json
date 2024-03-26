@@ -321,7 +321,7 @@
         "kind": 2,
         "importPath": "esports.views",
         "description": "esports.views",
-        "peekOfCode": "def profile(request, esport):\n    \"\"\"\n    User profile view.\n    \"\"\"\n    user_profile = get_object_or_404(User, esport=esport)\n    return render(request, \"profile.html\", {\"user_profile\": user_profile})\n@login_required(login_url=\"SignIn\")\ndef settings(request):\n    \"\"\"\n    User settings view.",
+        "peekOfCode": "def profile(request, esport):\n    \"\"\"\n    User profile view.\n    \"\"\"\n    Profile = get_object_or_404(User, esport=esport)\n    return render(request, \"profile.html\", {\"Profile\": Profile})\n@login_required(login_url=\"SignIn\")\ndef settings(request):\n    \"\"\"\n    User settings view.",
         "detail": "esports.views",
         "documentation": {}
     },
@@ -330,7 +330,7 @@
         "kind": 2,
         "importPath": "esports.views",
         "description": "esports.views",
-        "peekOfCode": "def settings(request):\n    \"\"\"\n    User settings view.\n    \"\"\"\n    user_profile = request.User\n    if request.method == \"POST\":\n        First_Name = request.POST.get(\"First_Name\", \"\")\n        Last_Name = request.POST.get(\"Last_Name\", \"\")\n        bio = request.POST.get(\"bio\", \"\")\n        user_profile.First_Name = First_Name",
+        "peekOfCode": "def settings(request):\n    \"\"\"\n    User settings view.\n    \"\"\"\n    Profile = request.User\n    if request.method == \"POST\":\n        First_Name = request.POST.get(\"First_Name\", \"\")\n        Last_Name = request.POST.get(\"Last_Name\", \"\")\n        bio = request.POST.get(\"bio\", \"\")\n        Profile.First_Name = First_Name",
         "detail": "esports.views",
         "documentation": {}
     },
