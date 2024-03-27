@@ -258,7 +258,7 @@
         "kind": 5,
         "importPath": "esports.urls",
         "description": "esports.urls",
-        "peekOfCode": "urlpatterns = [\n    path('SignIn/', views.SignIn, name='SignIn'),\n    path('SignUp/', views.SignUp, name='SignUp'),\n    path('profile/<int:esport>/', views.profile, name='profile'),\n    path('logout/', views.logout, name='logout'),\n    path('settings/', views.settings, name='settings'),\n    path('', views.List_of_Posts, name='List_of_Posts'),\n    path('post/create/', views.Created_Post, name='Created_Post'),\n    path('post/<int:esport>/delete/', views.Deleted_Post, name='Deleted_Post'),\n    path('post/<int:esport>/update/', views.Updated_Post, name='Updated_Post'),",
+        "peekOfCode": "urlpatterns = [\n    path('SignIn/', views.SignIn, name='SignIn'),\n    path('SignUp/', views.SignUp, name='SignUp'),\n    path('profile/<int:pk>/', views.profile, name='profile'),\n    path('logout/', views.logout, name='logout'),\n    path('settings/', views.settings, name='settings'),\n    path('', views.List_of_Posts, name='List_of_Posts'),\n    path('post/create/', views.Created_Post, name='Created_Post'),\n    path('post/<int:pk>/delete/', views.Deleted_Post, name='Deleted_Post'),\n    path('post/<int:pk>/update/', views.Updated_Post, name='Updated_Post'),",
         "detail": "esports.urls",
         "documentation": {}
     },
@@ -321,7 +321,7 @@
         "kind": 2,
         "importPath": "esports.views",
         "description": "esports.views",
-        "peekOfCode": "def profile(request, esport):\n    \"\"\"\n    User profile view.\n    \"\"\"\n    Profile = get_object_or_404(User, esport=esport)\n    return render(request, \"profile.html\", {\"Profile\": Profile})\n@login_required(login_url=\"SignIn\")\ndef settings(request):\n    \"\"\"\n    User settings view.",
+        "peekOfCode": "def profile(request, pk):\n    \"\"\"\n    User profile view.\n    \"\"\"\n    Profile = get_object_or_404(User, pk=pk)\n    return render(request, \"profile.html\", {\"Profile\": Profile})\n@login_required(login_url=\"SignIn\")\ndef settings(request):\n    \"\"\"\n    User settings view.",
         "detail": "esports.views",
         "documentation": {}
     },
@@ -339,7 +339,7 @@
         "kind": 2,
         "importPath": "esports.views",
         "description": "esports.views",
-        "peekOfCode": "def List_of_Posts(request):\n    \"\"\"\n    List all posts.\n    \"\"\"\n    posts = Post.objects.all()\n    return render(request, 'List_of_Posts.html', {'posts': posts})\ndef Post_Details(request, esport):\n    \"\"\"\n    View post detail.\n    \"\"\"",
+        "peekOfCode": "def List_of_Posts(request):\n    \"\"\"\n    List all posts.\n    \"\"\"\n    posts = Post.objects.all()\n    return render(request, 'List_of_Posts.html', {'posts': posts})\ndef Post_Details(request, pk):\n    \"\"\"\n    View post detail.\n    \"\"\"",
         "detail": "esports.views",
         "documentation": {}
     },
@@ -348,7 +348,7 @@
         "kind": 2,
         "importPath": "esports.views",
         "description": "esports.views",
-        "peekOfCode": "def Post_Details(request, esport):\n    \"\"\"\n    View post detail.\n    \"\"\"\n    post = get_object_or_404(Post, esport=esport)\n    if request.User.is_authenticated:\n        post.views += 1\n        post.save()\n    return render(request, 'Post_Details.html', {'post': post})\n@login_required(login_url='SignIn')",
+        "peekOfCode": "def Post_Details(request, pk):\n    \"\"\"\n    View post detail.\n    \"\"\"\n    post = get_object_or_404(Post, pk=pk)\n    if request.User.is_authenticated:\n        post.views += 1\n        post.save()\n    return render(request, 'Post_Details.html', {'post': post})\n@login_required(login_url='SignIn')",
         "detail": "esports.views",
         "documentation": {}
     },
@@ -366,7 +366,7 @@
         "kind": 2,
         "importPath": "esports.views",
         "description": "esports.views",
-        "peekOfCode": "def Updated_Post(request, esport):\n    \"\"\"\n    Update a post.\n    \"\"\"\n    post = get_object_or_404(Post, esport=esport)\n    if request.User != post.author:\n        messages.error(request, \"Editing privileges denied: You're not authorized to modify this post.\")\n        return redirect('Post_Details', esport=esport)\n    if request.method == 'POST':\n        title = request.POST.get('title', '')",
+        "peekOfCode": "def Updated_Post(request, pk):\n    \"\"\"\n    Update a post.\n    \"\"\"\n    post = get_object_or_404(Post, pk=pk)\n    if request.User != post.author:\n        messages.errors(request, \"Editing privileges denied: You're not authorized to modify this post.\")\n        return redirect('Post_Details', pk=pk)\n    if request.method == 'POST':\n        title = request.POST.get('title', '')",
         "detail": "esports.views",
         "documentation": {}
     },
@@ -375,7 +375,7 @@
         "kind": 2,
         "importPath": "esports.views",
         "description": "esports.views",
-        "peekOfCode": "def Deleted_Post(request, esport):\n    \"\"\"\n    Delete a post.\n    \"\"\"\n    post = get_object_or_404(Post, esport=esport)\n    if request.User != post.author:\n        messages.error(request, \"Editing privileges denied: You're not authorized to delete this post.\")\n        return redirect('Post_Details', esport=esport)\n    if request.method == 'POST':\n        post.delete()",
+        "peekOfCode": "def Deleted_Post(request, pk):\n    \"\"\"\n    Delete a post.\n    \"\"\"\n    post = get_object_or_404(Post, pk=pk)\n    if request.User != post.author:\n        messages.errors(request, \"Editing privileges denied: You're not authorized to delete this post.\")\n        return redirect('Post_Details', pk=pk)\n    if request.method == 'POST':\n        post.delete()",
         "detail": "esports.views",
         "documentation": {}
     },

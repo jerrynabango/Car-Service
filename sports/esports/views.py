@@ -3,7 +3,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model, authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Post
+from .models import Post, Comment
+from .forms import CommentForm
+from django.http import HttpResponse
 
 import re
 
@@ -61,7 +63,8 @@ def SignUp(request):
                 username=username,
                 email=email,
                 password=password,
-            )
+                )
+
             if user is not None:
                 messages.success(request, 'Welcome! Your account has been successfully created.')
                 return redirect("SignIn")
@@ -139,11 +142,11 @@ def SignIn(request):
         return render(request, "SignIn.html")
 
 
-def profile(request, esport):
+def profile(request, pk):
     """
     User profile view.
     """
-    profile = get_object_or_404(User_Model, esport=esport)
+    profile = get_object_or_404(User_Model, pk=pk)
     return render(request, "profile.html", {"profile": profile})
 
 
@@ -169,7 +172,7 @@ def View_Settings(request):
 
         profile.save()
 
-        return redirect("profile", profile.esport)
+        return redirect("profile", profile.pk)
 
     return render(request, "view_settings.html", {"profile": profile})
 
@@ -184,35 +187,39 @@ def Created_Post(request):
         title = request.POST.get('title', '')
         content = request.POST.get('content', '')
         if title and content:
-            post = Post.objects.create(author=author, title=title,
-                                       content=content)
+            post = Post.objects.create(author=author, title=title, content=content)
             messages.success(request, 'Post created!')
-            return redirect('Post_Details', esport=post.esport)
+            return redirect('Post_Details', pk=post.pk)
         else:
             messages.error(request, 'Title and content fields cannot be empty.')
     return render(request, 'form.html')
 
 
-def Post_Details(request, esport):
-    """
-    View post detail.
-    """
-    post = get_object_or_404(Post, esport=esport)
-    if request.user.is_authenticated:
-        post.views += 1
-        post.save()
-    return render(request, 'details.html', {'post': post})
+def Post_Details(request, post_id):
+    post = Post.objects.get(pk=post_id)
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.Author = request.user
+            comment.save()
+            return redirect('Post_Details', post_id=post_id)
+    else:
+        form = CommentForm()
+    return render(request, 'details.html', {'post': post, 'form': form})
+
 
 
 @login_required(login_url='SignIn')
-def Updated_Post(request, esport):
+def Updated_Post(request, pk):
     """
     Update a post.
     """
-    post = get_object_or_404(Post, esport=esport)
+    post = get_object_or_404(Post, pk=pk)
     if request.User != post.author:
         messages.error(request, "Editing privileges denied: You're not authorized to modify this post.")
-        return redirect('Post_Details', esport=esport)
+        return redirect('Post_Details', pk=pk)
 
     if request.method == 'POST':
         title = request.POST.get('title', '')
@@ -222,7 +229,7 @@ def Updated_Post(request, esport):
             post.content = content
             post.save()
             messages.success(request, 'Post updated!')
-            return redirect('Post_Details', esport=post.esport)
+            return redirect('Post_Details', pk=post.pk)
         else:
             messages.error(request, 'Please provide both title and content.')
 
@@ -230,14 +237,14 @@ def Updated_Post(request, esport):
 
 
 @login_required(login_url='SignIn')
-def Deleted_Post(request, esport):
+def Deleted_Post(request, pk):
     """
     Delete a post.
     """
-    post = get_object_or_404(Post, esport=esport)
+    post = get_object_or_404(Post, pk=pk)
     if request.User != post.author:
         messages.error(request, "Editing privileges denied: You're not authorized to delete this post.")
-        return redirect('Post_Details', esport=esport)
+        return redirect('Post_Details', pk=pk)
 
     if request.method == 'POST':
         post.delete()
@@ -247,9 +254,36 @@ def Deleted_Post(request, esport):
     return render(request, 'deleted.html', {'post': post})
 
 
+# List of Posts
 def List_of_Posts(request):
     """
     List all posts.
     """
     posts = Post.objects.all()
     return render(request, 'posts.html', {'posts': posts})
+
+
+# Comments
+@login_required(login_url='SignIn')
+def Commented(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == 'POST':
+        text = request.POST.get('text')
+        if text:
+            Comment.objects.create(post=post, author=request.user, text=text)
+            messages.success(request, 'Comment added!')
+            return redirect('Post_Details', esport=post.esport)
+        else:
+            messages.error(request, 'Comment cannot be empty.')
+    return render(request, 'comment_form.html', {'post': post})
+
+
+@login_required(login_url='SignIn')
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user == comment.author:
+        comment.delete()
+        messages.success(request, 'Comment deleted!')
+    else:
+        messages.error(request, "You don't have permission to delete this comment.")
+    return redirect('Post_Details', esport=comment.post.esport)
